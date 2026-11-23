@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Knuffel Leesrace</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --cream:#fff7ee; --pink:#ffd9e3; --pinkD:#f29ab4; --mint:#cdf1e1; --mintD:#5fc39a;
+  --blue:#d3e8ff; --blueD:#6fa6dc; --lila:#e8ddfb; --lilaD:#a68ad8; --peach:#ffe3cc; --peachD:#f3a66f;
+  --ink:#4b3a46; --soft:#8a7482; --red:#e8576f;
+  --ui: "Fredoka", "Baloo 2", "Comic Sans MS", "Trebuchet MS", system-ui, sans-serif;
+  --read: Verdana, "Segoe UI", Arial, Helvetica, sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%}
+body{
+  font-family:var(--ui); color:var(--ink); background-color:var(--cream);
+  background-image:radial-gradient(#f2dfcf 1.6px, transparent 1.8px);
+  background-size:24px 24px; min-height:100dvh; user-select:none; -webkit-user-select:none;
+}
+body::before{ /* vilt-textuur */
+  content:""; position:fixed; inset:0; pointer-events:none; z-index:0; opacity:.07;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+textarea,input,select{user-select:text;-webkit-user-select:text}
+.app{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:18px 18px 40px}
+.screen{display:none}
+.screen.on{display:block;animation:fade .25s ease}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+h1,h2,h3{margin:.2em 0 .4em;font-weight:700}
+h1{font-size:clamp(34px,6vw,58px);letter-spacing:.01em}
+h2{font-size:clamp(24px,3.5vw,34px)}
+h3{font-size:22px}
+.muted{color:var(--soft)}
+.center{text-align:center}
+.row{display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+.row.c{justify-content:center}
+.spacer{flex:1}
+
+.card{
+  position:relative;background:#fff;border-radius:34px;padding:24px;
+  box-shadow:0 10px 0 rgba(160,120,130,.12),0 18px 40px rgba(160,120,130,.15);
+  outline:2.5px dashed rgba(200,160,175,.55);outline-offset:-11px;
+}
+.card.pink{background:var(--pink);outline-color:rgba(255,255,255,.9)}
+.card.mint{background:var(--mint);outline-color:rgba(255,255,255,.9)}
+.card.blue{background:var(--blue);outline-color:rgba(255,255,255,.9)}
+.card.lila{background:var(--lila);outline-color:rgba(255,255,255,.9)}
+.card.peach{background:var(--peach);outline-color:rgba(255,255,255,.9)}
+
+.btn{
+  font-family:var(--ui);font-weight:600;font-size:22px;color:var(--ink);
+  border:0;border-radius:999px;padding:16px 30px;cursor:pointer;background:var(--blue);
+  box-shadow:0 6px 0 var(--blueD);outline:2px dashed rgba(255,255,255,.85);outline-offset:-7px;
+  transition:transform .08s, box-shadow .08s;min-height:60px;touch-action:manipulation;
+}
+.btn:active{transform:translateY(5px);box-shadow:0 1px 0 var(--blueD)}
+.btn.pink{background:var(--pink);box-shadow:0 6px 0 var(--pinkD)}
+.btn.pink:active{box-shadow:0 1px 0 var(--pinkD)}
+.btn.mint{background:var(--mint);box-shadow:0 6px 0 var(--mintD)}
+.btn.mint:active{box-shadow:0 1px 0 var(--mintD)}
+.btn.lila{background:var(--lila);box-shadow:0 6px 0 var(--lilaD)}
+.btn.lila:active{box-shadow:0 1px 0 var(--lilaD)}
+.btn.peach{background:var(--peach);box-shadow:0 6px 0 var(--peachD)}
+.btn.peach:active{box-shadow:0 1px 0 var(--peachD)}
+.btn.big{font-size:clamp(34px,6vw,52px);padding:22px 64px;min-height:96px;outline-offset:-10px}
+.btn.small{font-size:17px;padding:10px 18px;min-height:46px;box-shadow:0 4px 0 var(--blueD)}
+.btn.small.pink{box-shadow:0 4px 0 var(--pinkD)} .btn.small.mint{box-shadow:0 4px 0 var(--mintD)}
+.btn.small.lila{box-shadow:0 4px 0 var(--lilaD)} .btn.small.peach{box-shadow:0 4px 0 var(--peachD)}
+.btn[disabled]{opacity:.45;pointer-events:none}
+
+/* start */
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:8px}
+.hold{position:relative;overflow:hidden}
+.hold .fill{position:absolute;left:0;top:0;bottom:0;width:0;background:rgba(255,255,255,.65);border-radius:999px;pointer-events:none}
+.hold.holding .fill{width:100%;transition:width 2s linear}
+.hero{display:grid;grid-template-columns:minmax(200px,340px) 1fr;gap:24px;align-items:center;margin-top:10px}
+@media (max-width:720px){.hero{grid-template-columns:1fr;text-align:center}.hero .row{justify-content:center}}
+.mascot svg{width:100%;height:auto;max-width:340px;filter:drop-shadow(0 12px 10px rgba(120,80,90,.18))}
+.bob{animation:bob 3s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-10px) rotate(2deg)}}
+.levelpill{display:inline-flex;gap:10px;align-items:center;background:#fff;border-radius:999px;padding:10px 20px;font-size:20px;font-weight:600;
+  outline:2px dashed rgba(200,160,175,.6);outline-offset:-6px;box-shadow:0 4px 0 rgba(160,120,130,.15)}
+.dots{display:inline-flex;gap:6px}
+.dots i{width:16px;height:16px;border-radius:50%;background:#f0e4ea;display:inline-block}
+.dots i.on{background:var(--pinkD)}
+
+/* ronde */
+.timerwrap{position:relative;height:84px;margin:6px 0 18px}
+.track{position:absolute;left:0;right:0;bottom:10px;height:28px;border-radius:999px;background:#fff;
+  outline:2px dashed rgba(200,160,175,.6);outline-offset:-6px;box-shadow:inset 0 3px 6px rgba(150,110,120,.15);overflow:hidden}
+.track .bar{height:100%;width:0;background:linear-gradient(90deg,var(--mint),var(--blue));border-radius:999px}
+.track.late .bar{background:linear-gradient(90deg,var(--peach),var(--pink))}
+.walker{position:absolute;bottom:22px;left:0;width:64px;height:64px;transform:translateX(-50%)}
+.walker svg{width:64px;height:64px}
+.flag{position:absolute;right:-6px;bottom:22px;font-size:34px}
+.timetext{font-size:22px;font-weight:600;color:var(--soft)}
+.words{display:flex;flex-wrap:wrap;gap:22px;justify-content:center}
+.col{background:#fff;border-radius:30px;padding:16px 30px;min-width:240px;
+  outline:2.5px dashed rgba(200,160,175,.5);outline-offset:-10px;box-shadow:0 8px 0 rgba(160,120,130,.1)}
+.word{display:block;font-family:var(--read);font-size:clamp(30px,4.6vw,48px);line-height:1.75;color:#2d2229;
+  letter-spacing:.02em;white-space:nowrap;text-align:left;font-weight:400}
+.hidewords .word{visibility:hidden}
+.countdown{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:20;background:rgba(255,247,238,.88)}
+.countdown.on{display:flex}
+.countdown span{display:flex;align-items:center;justify-content:center;width:220px;height:220px;border-radius:50%;
+  background:var(--pink);font-size:120px;font-weight:700;outline:4px dashed #fff;outline-offset:-14px;
+  box-shadow:0 12px 0 var(--pinkD);animation:pop .9s ease}
+@keyframes pop{0%{transform:scale(.4);opacity:0}30%{transform:scale(1.08);opacity:1}100%{transform:scale(1)}}
+.banner{font-size:clamp(26px,4vw,38px);font-weight:700;text-align:center;margin:18px 0 6px}
+
+/* nakijken */
+.seg{display:inline-flex;background:#fff;border-radius:999px;padding:6px;gap:6px;outline:2px dashed rgba(200,160,175,.6);outline-offset:-4px}
+.seg button{touch-action:manipulation;font-family:var(--ui);font-size:20px;font-weight:600;border:0;border-radius:999px;padding:12px 22px;background:transparent;color:var(--ink);cursor:pointer;min-height:54px}
+.seg button.on.fout{background:var(--pink)} .seg button.on.tot{background:var(--mint)}
+.word.tap{touch-action:manipulation;cursor:pointer;border-radius:16px;padding:0 12px;margin:2px -12px;position:relative}
+.word.tap.wrong{background:#ffe1e6;color:var(--red);text-decoration:line-through;text-decoration-thickness:3px}
+.word.tap.wrong::after{content:"✗";position:absolute;right:-6px;top:-6px;font-size:26px;color:var(--red)}
+.word.tap.unread{opacity:.28}
+.word.tap.last{box-shadow:inset 0 -6px 0 var(--mintD)}
+.word.tap.last::before{content:"tot hier";position:absolute;left:12px;bottom:-6px;font-family:var(--ui);font-size:14px;color:var(--mintD);font-weight:700;letter-spacing:0;text-decoration:none}
+.live{font-size:22px;font-weight:600}
+.hint{background:#fff;border-radius:22px;padding:12px 18px;font-size:18px;outline:2px dashed rgba(200,160,175,.5);outline-offset:-6px}
+
+/* resultaat */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:16px;margin:18px 0}
+.stat{border-radius:28px;padding:18px;text-align:center;outline:2px dashed rgba(255,255,255,.9);outline-offset:-8px}
+.stat b{display:block;font-size:44px;line-height:1.1}
+.stat span{font-size:18px}
+.stars{display:flex;justify-content:center;gap:10px;margin:6px 0}
+.stars svg{width:70px;height:70px}
+.stars .on{animation:starpop .6s both}
+.stars .on:nth-child(2){animation-delay:.25s}.stars .on:nth-child(3){animation-delay:.5s}
+@keyframes starpop{0%{transform:scale(0) rotate(-40deg)}70%{transform:scale(1.25) rotate(8deg)}100%{transform:scale(1)}}
+.jump{animation:jump .7s ease 3}
+@keyframes jump{0%,100%{transform:translateY(0)}40%{transform:translateY(-36px) scale(1.04,.96)}60%{transform:translateY(-30px)}}
+.resmascot svg{width:220px;height:auto}
+
+/* voortgang */
+.kast{display:flex;flex-wrap:wrap;gap:14px;justify-content:center}
+.kast .slot{background:#fff;border-radius:26px;padding:10px 10px 6px;text-align:center;width:130px;
+  outline:2px dashed rgba(200,160,175,.5);outline-offset:-6px}
+.kast .slot svg{width:100px;height:100px}
+.kast .slot.locked svg{filter:grayscale(1) brightness(1.1);opacity:.25}
+.kast .slot div{font-size:15px;font-weight:600}
+table{width:100%;border-collapse:collapse;font-size:17px}
+th,td{padding:8px 6px;text-align:left;border-bottom:2px dashed #f0e2e8}
+th{color:var(--soft);font-weight:600}
+td.ok{color:var(--mintD);font-weight:700}
+.chart svg{width:100%;height:auto}
+
+/* ouder */
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+label.f{display:flex;flex-direction:column;gap:6px;font-size:17px;font-weight:600}
+label.f small{font-weight:400;color:var(--soft)}
+input[type=number],input[type=text],select,textarea{font-family:var(--ui);font-size:19px;padding:10px 14px;border-radius:16px;border:2px solid #f0dce4;background:#fffdfb;color:var(--ink)}
+textarea{font-family:var(--read);font-size:16px;width:100%;min-height:140px;line-height:1.5}
+input[type=checkbox]{width:26px;height:26px;accent-color:var(--pinkD)}
+.sheetcard{margin:14px 0;padding:18px}
+.sheetcard.off{opacity:.55}
+.sheetcard .row input[type=text]{flex:1;min-width:180px}
+details summary{cursor:pointer;font-weight:600;font-size:18px;padding:6px 0}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 22px;border-radius:999px;font-size:18px;z-index:30;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.on{opacity:1}
+section{margin:18px 0}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- START -->
+<div class="screen on" id="s-start">
+  <div class="topbar">
+    <button class="btn small lila hold" id="btn-ouder"><span class="fill"></span><span style="position:relative">Ouder</span></button>
+    <button class="btn small peach" id="btn-voortgang">Mijn voortgang</button>
+  </div>
+  <div class="hero">
+    <div class="mascot center"><div class="bob" id="start-mascot"></div></div>
+    <div>
+      <h1>Knuffel Leesrace</h1>
+      <p style="font-size:22px;margin:0 0 14px" id="start-hello"></p>
+      <div class="levelpill" id="start-level"></div>
+      <div class="row" style="margin-top:28px"><button class="btn big pink" id="btn-start">Start!</button></div>
+      <p class="muted" id="start-sub" style="font-size:18px;margin-top:18px"></p>
+    </div>
+  </div>
+</div>
+
+<!-- RONDE -->
+<div class="screen" id="s-round">
+  <div class="row">
+    <div class="timetext" id="round-title"></div><div class="spacer"></div>
+    <div class="timetext" id="round-time"></div>
+  </div>
+  <div class="timerwrap">
+    <div class="track" id="track"><div class="bar" id="bar"></div></div>
+    <div class="walker" id="walker"></div>
+    <div class="flag">
+      <svg width="40" height="48" viewBox="0 0 40 48"><rect x="4" y="2" width="4" height="44" rx="2" fill="#b89aa8"/><path d="M8 4 H34 L28 13 L34 22 H8 Z" fill="#f29ab4"/><path d="M8 4 H34 L28 13 L34 22 H8 Z" fill="none" stroke="#fff" stroke-dasharray="3 3" stroke-width="1.5"/></svg>
+    </div>
+  </div>
+  <div class="words" id="round-words"></div>
+  <div class="banner" id="round-banner"></div>
+  <div class="row c" style="margin-top:20px">
+    <button class="btn big mint" id="btn-klaar">Klaar!</button>
+    <button class="btn big lila" id="btn-nakijken" style="display:none">Nakijken</button>
+  </div>
+  <div class="row c" style="margin-top:14px"><button class="btn small" id="btn-stop">Stoppen</button></div>
+  <div class="countdown" id="countdown"><span id="cd-num">3</span></div>
+</div>
+
+<!-- NAKIJKEN -->
+<div class="screen" id="s-check">
+  <h2>Nakijken</h2>
+  <div class="row" style="margin-bottom:14px">
+    <div class="seg"><button class="fout on" data-mode="fout">✗ Fout aantikken</button><button class="tot" data-mode="tot">Tot hier gelezen</button></div>
+    <div class="spacer"></div>
+    <div class="live" id="check-live"></div>
+  </div>
+  <div class="hint" id="check-hint"></div>
+  <div class="words" id="check-words" style="margin-top:18px"></div>
+  <div class="row c" style="margin-top:26px">
+    <button class="btn" id="btn-check-back">Terug</button>
+    <button class="btn big pink" id="btn-save">Opslaan</button>
+  </div>
+</div>
+
+<!-- RESULTAAT -->
+<div class="screen" id="s-result">
+  <div class="center">
+    <div class="stars" id="res-stars"></div>
+    <div class="resmascot"><div id="res-mascot"></div></div>
+    <h1 id="res-title"></h1>
+    <p style="font-size:22px;margin:0" id="res-msg"></p>
+  </div>
+  <div class="stats" id="res-stats"></div>
+  <div class="row c">
+    <button class="btn" id="btn-res-home">Naar start</button>
+    <button class="btn big pink" id="btn-again">Nog een keer!</button>
+  </div>
+</div>
+
+<!-- VOORTGANG -->
+<div class="screen" id="s-progress">
+  <div class="topbar"><button class="btn small" data-home>&larr; Terug</button></div>
+  <h2>Mijn knuffelkast</h2>
+  <div class="card pink"><div class="kast" id="kast"></div></div>
+  <section>
+    <h2>Woorden per minuut (goed gelezen)</h2>
+    <div class="card"><div class="chart" id="chart"></div></div>
+  </section>
+  <section>
+    <h2>Alle rondes</h2>
+    <div class="card" style="overflow-x:auto"><div id="sessions"></div></div>
+  </section>
+</div>
+
+<!-- OUDER -->
+<div class="screen" id="s-parent">
+  <div class="topbar"><button class="btn small" data-home>&larr; Terug</button><h2 style="margin:0">Ouder-instellingen</h2></div>
+
+  <section class="card blue">
+    <h3>Niveau</h3>
+    <p id="p-current" style="font-size:18px"></p>
+    <div class="row">
+      <label class="f">Leesblad<select id="p-sheet"></select></label>
+      <label class="f">Stap<select id="p-step"></select></label>
+      <button class="btn small mint" id="p-setlevel" style="align-self:flex-end">Zet niveau</button>
+      <button class="btn small pink" id="p-resetlevel" style="align-self:flex-end">Terug naar begin</button>
+    </div>
+  </section>
+
+  <section class="card mint">
+    <h3>Tempo &amp; norm</h3>
+    <div class="grid2">
+      <label class="f">Woorden per ronde<input type="number" id="p-perRound" min="1" max="80" step="1"></label>
+      <label class="f">Startseconden per woord<small>Zo veel tijd per woord bij een nieuw leesblad</small><input type="number" id="p-startSec" min="0.5" max="20" step="0.1"></label>
+      <label class="f">Minimum seconden per woord<small>Sneller hoeft niet; daarna volgend leesblad</small><input type="number" id="p-minSec" min="0.3" max="20" step="0.1"></label>
+      <label class="f">Stapgrootte (seconden)<small>Zoveel minder tijd per woord per stap</small><input type="number" id="p-stepSec" min="0.1" max="5" step="0.1"></label>
+      <label class="f">Minimaal % goed<input type="number" id="p-minAcc" min="0" max="100" step="1"></label>
+      <label class="f">Keer achter elkaar halen voor stap omhoog<input type="number" id="p-streakNeeded" min="1" max="10" step="1"></label>
+      <label class="f" style="flex-direction:row;align-items:center;gap:10px"><input type="checkbox" id="p-needAll"> Alle woorden moeten binnen de tijd gelezen zijn</label>
+    </div>
+    <div class="row" style="margin-top:14px"><button class="btn small pink" id="p-savesettings">Opslaan</button></div>
+  </section>
+
+  <section class="card lila">
+    <h3>Woordlijsten</h3>
+    <p class="muted" style="margin-top:0">Eén rijtje per regel, woorden gescheiden door spaties of komma's. Vinkje uit = blad wordt overgeslagen. Volgorde = volgorde van de niveaus.</p>
+    <div id="p-sheets"></div>
+    <div class="row">
+      <button class="btn small mint" id="p-savesheets">Woordlijsten opslaan</button>
+      <button class="btn small" id="p-addsheet">+ Eigen leesblad</button>
+      <div class="spacer"></div>
+      <button class="btn small peach" id="p-restoresheets">Standaardlijsten herstellen</button>
+    </div>
+  </section>
+
+  <section class="card peach">
+    <h3>Gegevens</h3>
+    <div class="row">
+      <button class="btn small mint" id="p-export">Back-up downloaden (JSON)</button>
+      <button class="btn small" id="p-import">Back-up terugzetten</button>
+      <input type="file" id="p-file" accept="application/json,.json" style="display:none">
+      <div class="spacer"></div>
+      <button class="btn small pink" id="p-wipe">Alle voortgang wissen</button>
+    </div>
+    <p class="muted" id="p-storage" style="margin-bottom:0"></p>
+  </section>
+</div>
+
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// Woordenlijsten uit het leesboek (Leesblad 1-9). Elk blad = lijst van rijtjes van 5 woorden.
+// Volgorde in LEESBLADEN = oplopende moeilijkheid zoals in het boek.
+// Gereconstrueerd (rand van de foto viel weg): blad 1 rij 13, blad 3 rij 9 (beurten, anker), blad 7 rij 15 (knecht, springt). Blad 3 rij 13 was onleesbaar en is weggelaten.
+const LEESBLADEN = [
+ { id: 1, titel: "Leesblad 1", rijen: [
+  ["streep","straat","stroef","struik","strip"],
+  ["klomp","klant","klimt","kluift","kleeft"],
+  ["barst","vorst","perst","verst","koerst"],
+  ["helpt","melkt","kolkt","kalkt","stelpt"],
+  ["glanst","slimst","bruinst","groenst","zwartst"],
+  ["stomst","sponst","sprint","slimst","splitst"],
+  ["fijnst","kleinst","stoutst","krimpt","stampt"],
+  ["schraapt","sprits","strijkt","strekt","flitst"],
+  ["schrift","schroeft","schrapt","schorst","schermt"],
+  ["schuift","kerst","poetst","spalk","tjalk"],
+  ["schuilt","proest","stapt","dampt","sterkst"],
+  ["scherf","troost","spleet","sproet","snurkt"],
+  ["zakdoek","voetzool","zeepbel","rugzak","leesboek"],
+  ["duikbril","muisstil","boomschors","zakkam","busdienst"],
+  ["strafwerk","bloemperk","slaapzak","verfkwast","melkboer"],
+  ["postkoets","schoolplein","schrijfschrift","viltstift","kerkklok"]]},
+ { id: 2, titel: "Leesblad 2", rijen: [
+  ["langer","tangen","vangen","zanger","banger"],
+  ["ringen","vinger","dringen","springen","slinger"],
+  ["jongen","sprongen","tongen","longen","zongen"],
+  ["mengen","strengen","hengel","stengel","bengel"],
+  ["richten","nichten","dichter","plichten","stichter"],
+  ["achter","vachten","zachter","nachten","vrachten"],
+  ["echter","rechter","slechter","spechten","vlechten"],
+  ["luchten","kuchten","zuchten","vluchten","vruchten"],
+  ["dochter","dwingen","lichter","jengel","zingen"],
+  ["wachten","knechten","langzaam","krachten","honger"],
+  ["achtbaan","achterruit","rechterarm","zoektocht","vrachtschip"],
+  ["tuinslang","niettang","slingeraap","trouwring","vishengel"],
+  ["krimpt","fronst","zwerft","sprint","leukst"],
+  ["helft","markt","schroeft","klomp","blaast"],
+  ["schermbloem","schaatsbaan","sneltrein","ijsschots","broekrits"],
+  ["schoolplein","kerstfeest","taartschep","fietsstuur","startschot"]]},
+ { id: 3, titel: "Leesblad 3", rijen: [
+  ["banken","danken","ranken","manke","dranken"],
+  ["pinken","vinken","zinken","hinkel","winkel"],
+  ["schenkt","stronken","blanker","sprankel","wankel"],
+  ["schenken","sprenkel","wenken","slanker","drinken"],
+  ["keert","veert","scheert","zweert","smeert"],
+  ["hoort","boort","poort","spoort","koorts"],
+  ["scheurt","beurt","sleurt","kleurt","speurt"],
+  ["keel","deelt","geelst","steelt","speelt"],
+  ["Henk","klanken","onweer","beurten","anker"],
+  ["winkels","sfeer","hinkel","rinkel","eerste"],
+  ["Frank","treurt","zweer","stinken","inkt"],
+  ["voordeel","schoorsteen","voorbank","sprinkhaan","dankbaar"],
+  ["spechten","vrachten","vruchten","stichten","plichten"],
+  ["langzaam","zanger","kringen","wringen","hengel"],
+  ["voordringen","schoolbanken","achterdeur","donkerbruin","lichtblauw"]]},
+ { id: 4, titel: "Leesblad 4 (herhaling)", rijen: [
+  ["leest","draagt","schrift","kruipt","bruinst"],
+  ["streng","specht","slank","beurt","bind"],
+  ["achteraan","voordeur","haarvlecht","schermbloem","marktkraam"],
+  ["scherm","korps","slurpt","kleinst","sjouwt"],
+  ["dacht","scheld","spring","boort","stoutst"],
+  ["schoolplein","drinken","melkkies","rechterarm","wringen"],
+  ["oogst","trouwt","knoest","klotst","verft"],
+  ["stinkt","schetst","zing","mond","vlecht"],
+  ["stadspoort","buurthuis","kleurkrijt","linkerbeen","vrachtschip"],
+  ["preekt","zalm","brult","vliegt","krimpt"],
+  ["klacht","brand","koorts","gong","rechts"],
+  ["longen","stichten","schaatspret","plankenkoorts","speerpunt"],
+  ["fluit","dweilt","schurk","steunt","sterkst"],
+  ["spreid","knecht","links","jong","streelt"],
+  ["plichten","vishengels","kerstfeest","verfdoos","dankbaar"]]},
+ { id: 5, titel: "Leesblad 5", rijen: [
+  ["beitel","seinen","dreigen","beide","kleien"],
+  ["eiken","kleine","meisje","leiding","eigen"],
+  ["dweilen","leiden","meiden","einde","breien"],
+  ["spreiden","sjeik","zeilen","scheiding","pleister"],
+  ["augurk","auto","grauw","flauwe","kauwen"],
+  ["sauzen","rauwe","snauwen","klauw","Paul"],
+  ["blauwste","applaus","dauw","nauw","pauze"],
+  ["wenkbrauw","auteur","automaat","klauwen","Laura"],
+  ["sauzen","blauwe","sauskom","blauwste","kauwgom"],
+  ["scheiden","zeilboot","dreiging","veiling","afscheid"],
+  ["augurken","flauwekul","rauwkost","donkerblauw","lichtblauw"],
+  ["weide","eikels","arbeider","geiten","preien"],
+  ["kreunt","poetst","spruit","klimt","laatst"],
+  ["boottochten","ijsschots","vishengel","lichtpunt","springtouw"],
+  ["sprenkel","donkere","klinker","winkelier","ankers"],
+  ["spoorweg","veertien","noord","woord","speurneus"]]},
+ { id: 6, titel: "Leesblad 6", rijen: [
+  ["aaien","maaien","baaien","kraaien","draaien"],
+  ["ooien","gooien","hooien","prooien","strooien"],
+  ["roeien","boeien","sproeien","bloeien","snoeien"],
+  ["sproeier","dooier","fraaie","knoeier","draaier"],
+  ["eeuwen","meeuwen","sneeuwen","spreeuwen","schreeuwen"],
+  ["nieuwer","kieuwen","nieuws","nieuwst","Leeuwarden"],
+  ["sneeuwbal","nieuwjaar","sneeuwbui","opnieuw","nieuwste"],
+  ["sneeuwvlok","nieuwsdienst","sneeuwman","sneeuwpop","sneeuwwit"],
+  ["toernooi","uitwaaien","weggooien","plooien","nooit"],
+  ["nieuweling","nieuwer","schreeuwer","nieuwste","Zeeuw"],
+  ["ooievaar","zwaaien","moeizaam","vloeibaar","mooiste"],
+  ["leeuwin","insneeuwen","Nieuwkoop","leeuwerik","schreeuwt"],
+  ["glanst","proest","sloomst","scherpst","klotst"],
+  ["stichter","vrachten","slechter","vluchten","zochten"],
+  ["winkels","blanker","schenken","donker","klinker"],
+  ["hengel","sprongen","slinger","zanger","langzaam"]]},
+ { id: 7, titel: "Leesblad 7", rijen: [
+  ["eb","web","rib","heb","schub"],
+  ["krab","schrob","slab","drab","kwab"],
+  ["Rob","Job","Bob"],
+  ["vriend","beeld","wreed","ochtend","strand"],
+  ["meervoud","Friesland","standbeeld","vloerkleed","Zeeland"],
+  ["enkelvoud","brandweer","vriendschap","Noordpool","rondgang"],
+  ["tandarts","windstoot","broodmes","vloedgolf","goudstaaf"],
+  ["bericht","beslist","benieuwd","bedankt","behangen"],
+  ["geduld","gespierd","gevecht","gezond","gebouw"],
+  ["verstand","verkeerd","verlichting","vertrouwd","versiering"],
+  ["gemeente","verwachting","belofte","berichten","verdieping"],
+  ["ooievaar","draaien","vloeibaar","sproeier","fraaie"],
+  ["sneeuwen","kieuwen","opnieuw","Zeeuwen","schreeuwen"],
+  ["flitst","vleermuis","stronken","springen","rechter"],
+  ["groenst","eerst","speels","knecht","springt"]]},
+ { id: 8, titel: "Leesblad 8 (herhaling)", rijen: [
+  ["hand","schuit","stampt","kreunt","filmt"],
+  ["kleien","snauwen","draaien","leeuwen","schub"],
+  ["ooievaar","berichten","melkkiezen","verlangen","enkelvoud"],
+  ["splits","bord","klomp","kiest","tjilpt"],
+  ["sauzen","einde","hooien","geeuwen","Rob"],
+  ["vloeibaar","verstand","speelfilm","bevriezen","vriendschap"],
+  ["duimt","beeld","groenst","krijst","melkt"],
+  ["zeilen","nauwe","snoeien","schrob","kieuwen"],
+  ["draaideur","gezond","schelpdieren","verbranding","woordzoeker"],
+  ["maand","slimst","proest","kramp","vrouw"],
+  ["treinen","klauwen","dooier","nieuws","rib"],
+  ["lichtgroen","bedanken","hulppost","gezichten","wandelpad"],
+  ["vraagt","speld","stompt","zwijg","sliep"],
+  ["sprei","flauwe","toernooi","nieuwjaar","web"],
+  ["versieren","schroevendraaier","beroepen","leeuwerik","springpaard"]]},
+ { id: 9, titel: "Leesblad 9", rijen: [
+  ["boeken","struiken","spieren","pauze","schroeven"],
+  ["wonder","parken","kisten","wanten","wolven"],
+  ["matten","koppen","liggen","petten","strikken"],
+  ["vogel","spreker","straten","sturen","bevers"],
+  ["printen","wandel","sprinter","verven","morgen"],
+  ["hagel","spoken","strepen","spugen","Peter"],
+  ["neuzen","duimen","schieten","peuter","zwijgen"],
+  ["middel","wakker","klassen","steppen","Anne"],
+  ["Zwolle","Meppel","Emmen","Assen","Harrie"],
+  ["stormen","kletsen","snurken","splitsen","sprinten"],
+  ["stralen","stromen","breken","oven","apen"],
+  ["strijken","striemen","stroeve","spreuken","splijten"],
+  ["schub","web","schrob","Rob","heb"],
+  ["voorspoed","zeldzaam","verslaafd","brandweer","beroemd"],
+  ["schreeuw","zwaaien","vermoeien","nieuweling","leeuwenkooi"],
+  ["gerucht","spechten","oprichten","gedichten","Maastricht"]]}
+];
+
+</script>
+<script>
+"use strict";
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const r2 = x => Math.round(x * 100) / 100;
+const fmt = x => String(r2(x)).replace(".", ",");
+const clone = o => JSON.parse(JSON.stringify(o));
+
+/* ---------- opslag (localStorage met in-memory fallback) ---------- */
+const store = (() => {
+  const mem = {}; let ok = true;
+  try { localStorage.setItem("__rl", "1"); localStorage.removeItem("__rl"); } catch (e) { ok = false; }
+  return {
+    ok: () => ok,
+    get(k, d) {
+      if (k in mem) return clone(mem[k]);
+      try { if (ok) { const v = localStorage.getItem(k); if (v != null) return JSON.parse(v); } } catch (e) {}
+      return clone(d);
+    },
+    set(k, v) { mem[k] = clone(v); try { if (ok) localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+  };
+})();
+
+const DEFAULT_SETTINGS = { perRound: 10, startSec: 4, minSec: 2.5, stepSec: 0.5, minAcc: 90, needAll: true, streakNeeded: 2 };
+const defaultSheets = () => LEESBLADEN.map(b => ({ id: "b" + b.id, titel: b.titel, rijen: clone(b.rijen), aan: true }));
+
+const state = {
+  settings: Object.assign({}, DEFAULT_SETTINGS, store.get("rl_settings", {})),
+  sheets: store.get("rl_sheets", null) || defaultSheets(),
+  level: store.get("rl_level", null),
+  sessions: store.get("rl_sessions", []),
+  unlocked: store.get("rl_unlocked", 0)
+};
+if (!state.level) state.level = { sheetId: state.sheets[0].id, sec: state.settings.startSec, streak: 0 };
+state.level.sec = Number.isFinite(state.level.sec) ? state.level.sec : state.settings.startSec;
+function save() {
+  store.set("rl_settings", state.settings); store.set("rl_sheets", state.sheets);
+  store.set("rl_level", state.level); store.set("rl_sessions", state.sessions); store.set("rl_unlocked", state.unlocked);
+}
+
+/* ---------- knuffels (eigen ontwerpen, inline SVG) ---------- */
+const KNUFFELS = [
+  { type: "beer", naam: "Beer Bram", kleur: "#d9a77c", licht: "#f6dcc4" },
+  { type: "konijn", naam: "Konijn Knuf", kleur: "#f7d6e1", licht: "#fff4f8" },
+  { type: "olifant", naam: "Olifant Olli", kleur: "#bccfec", licht: "#e6eefa" },
+  { type: "uil", naam: "Uil Uki", kleur: "#cbb8e8", licht: "#f0e8fc" },
+  { type: "schaap", naam: "Schaap Sien", kleur: "#fffaf1", licht: "#f0d8c4" },
+  { type: "vos", naam: "Vos Fien", kleur: "#f6ad7b", licht: "#fff2e6" },
+  { type: "beer", naam: "IJsbeer Pip", kleur: "#e9f1fb", licht: "#ffffff" },
+  { type: "konijn", naam: "Konijn Lotje", kleur: "#d6c7f2", licht: "#f3edfd" },
+  { type: "uil", naam: "Uil Mint", kleur: "#bde7d2", licht: "#e9f8f0" }
+];
+function knuffelSVG(k, happy) {
+  const c = k.kleur, l = k.licht, ln = "#6e5160";
+  const st = `stroke="${ln}" stroke-opacity=".32" stroke-width="1.6" stroke-dasharray="3 3" fill="none"`;
+  const edge = `stroke="${ln}" stroke-opacity=".18" stroke-width="2"`;
+  let ears = "", face = "", extra = "", headFill = c, eyeY = 46, eyeR = 4.4, mouth = true;
+  switch (k.type) {
+    case "beer":
+      ears = `<circle cx="33" cy="24" r="13" fill="${c}" ${edge}/><circle cx="33" cy="24" r="7" fill="${l}"/><circle cx="87" cy="24" r="13" fill="${c}" ${edge}/><circle cx="87" cy="24" r="7" fill="${l}"/>`;
+      face = `<ellipse cx="60" cy="61" rx="15" ry="11" fill="${l}"/><ellipse cx="60" cy="56" rx="5.5" ry="3.8" fill="${ln}"/>`;
+      break;
+    case "konijn":
+      ears = `<g transform="rotate(-12 45 30)"><ellipse cx="45" cy="14" rx="10" ry="25" fill="${c}" ${edge}/><ellipse cx="45" cy="16" rx="5" ry="17" fill="#f8b6c9"/></g><g transform="rotate(12 75 30)"><ellipse cx="75" cy="14" rx="10" ry="25" fill="${c}" ${edge}/><ellipse cx="75" cy="16" rx="5" ry="17" fill="#f8b6c9"/></g>`;
+      face = `<ellipse cx="60" cy="58" rx="4.5" ry="3.2" fill="#ee8aa6"/>`;
+      break;
+    case "olifant":
+      ears = `<ellipse cx="25" cy="50" rx="21" ry="25" fill="${c}" ${edge}/><ellipse cx="27" cy="50" rx="13" ry="17" fill="#f6c6d4"/><ellipse cx="95" cy="50" rx="21" ry="25" fill="${c}" ${edge}/><ellipse cx="93" cy="50" rx="13" ry="17" fill="#f6c6d4"/>`;
+      extra = `<path d="M53 56 Q51 82 62 88 Q71 90 70 82 Q63 80 66 56 Z" fill="${c}" ${edge}/><path d="M56 64 h8 M56 71 h8 M58 78 h7" ${st}/>`;
+      mouth = false;
+      break;
+    case "uil":
+      ears = `<path d="M32 30 L28 6 L50 22 Z" fill="${c}" ${edge}/><path d="M88 30 L92 6 L70 22 Z" fill="${c}" ${edge}/>`;
+      face = `<circle cx="47" cy="47" r="13" fill="${l}"/><circle cx="73" cy="47" r="13" fill="${l}"/><path d="M55 58 H65 L60 66 Z" fill="#f4b15c"/>`;
+      eyeY = 47; eyeR = 5.6; mouth = false;
+      break;
+    case "schaap":
+      headFill = l;
+      ears = `<ellipse cx="25" cy="52" rx="13" ry="6.5" fill="${l}" ${edge} transform="rotate(15 25 52)"/><ellipse cx="95" cy="52" rx="13" ry="6.5" fill="${l}" ${edge} transform="rotate(-15 95 52)"/>` +
+        [[40,22],[52,16],[66,16],[79,22],[88,32],[32,32],[60,24]].map(([x,y]) => `<circle cx="${x}" cy="${y}" r="12" fill="${c}" ${edge}/>`).join("");
+      face = `<ellipse cx="60" cy="57" rx="4.5" ry="3" fill="${ln}"/>`;
+      break;
+    case "vos":
+      ears = `<path d="M28 36 L34 2 L58 22 Z" fill="${c}" ${edge}/><path d="M36 28 L38 12 L50 22 Z" fill="${l}"/><path d="M92 36 L86 2 L62 22 Z" fill="${c}" ${edge}/><path d="M84 28 L82 12 L70 22 Z" fill="${l}"/>`;
+      face = `<path d="M30 54 Q60 50 90 54 Q86 78 60 80 Q34 78 30 54 Z" fill="${l}"/><ellipse cx="60" cy="58" rx="5" ry="3.6" fill="${ln}"/>`;
+      break;
+  }
+  const bodyFill = k.type === "schaap" ? c : c;
+  const eyes = happy
+    ? `<path d="M${47-eyeR} ${eyeY} q${eyeR} -${eyeR*1.3} ${eyeR*2} 0" stroke="#3b2f36" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M${73-eyeR} ${eyeY} q${eyeR} -${eyeR*1.3} ${eyeR*2} 0" stroke="#3b2f36" stroke-width="3" fill="none" stroke-linecap="round"/>`
+    : `<circle cx="47" cy="${eyeY}" r="${eyeR}" fill="#3b2f36"/><circle cx="${48.4}" cy="${eyeY-1.5}" r="1.5" fill="#fff"/><circle cx="73" cy="${eyeY}" r="${eyeR}" fill="#3b2f36"/><circle cx="74.4" cy="${eyeY-1.5}" r="1.5" fill="#fff"/>`;
+  const m = mouth ? `<path d="M55 ${k.type==="beer"?63:k.type==="vos"?64:63} q5 5 10 0" stroke="#3b2f36" stroke-width="2.2" fill="none" stroke-linecap="round"/>` : "";
+  return `<svg viewBox="0 0 120 132" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${esc(k.naam)}">
+    ${ears}
+    <ellipse cx="44" cy="124" rx="13" ry="7.5" fill="${bodyFill}" ${edge}/><ellipse cx="76" cy="124" rx="13" ry="7.5" fill="${bodyFill}" ${edge}/>
+    <ellipse cx="60" cy="101" rx="31" ry="25" fill="${bodyFill}" ${edge}/>
+    <ellipse cx="60" cy="104" rx="18" ry="15" fill="${l}"/><ellipse cx="60" cy="104" rx="14.5" ry="11.5" ${st}/>
+    <ellipse cx="31" cy="97" rx="9" ry="14" fill="${bodyFill}" ${edge} transform="rotate(22 31 97)"/><ellipse cx="89" cy="97" rx="9" ry="14" fill="${bodyFill}" ${edge} transform="rotate(-22 89 97)"/>
+    <circle cx="60" cy="48" r="32" fill="${headFill}" ${edge}/>
+    <path d="M60 17 V27" ${st}/>
+    ${face}${extra}${eyes}${m}
+    <ellipse cx="38" cy="58" rx="5.5" ry="3.3" fill="#ff98b2" opacity=".55"/><ellipse cx="82" cy="58" rx="5.5" ry="3.3" fill="#ff98b2" opacity=".55"/>
+  </svg>`;
+}
+const knuffelFor = pos => KNUFFELS[((pos % KNUFFELS.length) + KNUFFELS.length) % KNUFFELS.length];
+const starSVG = on => `<svg viewBox="0 0 60 60" class="${on ? "on" : ""}"><path d="M30 5 L37.5 21 L55 23 L42 35 L45.5 52 L30 43.5 L14.5 52 L18 35 L5 23 L22.5 21 Z" fill="${on ? "#ffd36e" : "#efe5ea"}" stroke="${on ? "#f0a93b" : "#e0d0d8"}" stroke-width="2.5" stroke-linejoin="round"/><path d="M30 13 L35 24 L47 25.5 L38 33.5 L40.5 45 L30 39.5 L19.5 45 L22 33.5 L13 25.5 L25 24 Z" fill="none" stroke="#fff" stroke-opacity=".8" stroke-dasharray="2.5 2.5" stroke-width="1.4"/></svg>`;
+
+/* ---------- niveaus ---------- */
+const enabledSheets = () => state.sheets.filter(s => s.aan !== false && s.rijen.flat().length > 0);
+function currentSheet() { const en = enabledSheets(); return en.find(s => s.id === state.level.sheetId) || en[0] || null; }
+const sheetPos = sh => enabledSheets().indexOf(sh);
+function grid() {
+  const s = state.settings, g = [];
+  for (let v = s.startSec; v > s.minSec + 1e-6 && g.length < 200; v = r2(v - s.stepSec)) g.push(r2(v));
+  g.push(r2(s.minSec)); return g;
+}
+const stepCount = () => grid().length;
+function stepOf(sec) { const g = grid(); let best = 0; g.forEach((v, i) => { if (Math.abs(v - sec) < Math.abs(g[best] - sec)) best = i; }); return best + 1; }
+function secOfStep(step) { const g = grid(); return g[Math.min(g.length, Math.max(1, step)) - 1]; }
+const snapSec = sec => secOfStep(stepOf(Number.isFinite(sec) ? sec : state.settings.startSec));
+
+function applyLevel(passed) {
+  const L = state.level, s = state.settings;
+  if (!passed) { L.streak = 0; return { ev: "none" }; }
+  L.streak++;
+  if (L.streak < s.streakNeeded) return { ev: "streak", left: s.streakNeeded - L.streak };
+  L.streak = 0;
+  const st = stepOf(L.sec);
+  if (st < stepCount()) { L.sec = secOfStep(st + 1); return { ev: "stap" }; }
+  const en = enabledSheets(), pos = en.indexOf(currentSheet());
+  if (pos >= 0 && pos < en.length - 1) {
+    L.sheetId = en[pos + 1].id; L.sec = s.startSec;
+    let fresh = false;
+    if (pos + 1 > state.unlocked) { state.unlocked = pos + 1; fresh = true; }
+    return { ev: "blad", fresh, knuffel: knuffelFor(pos + 1) };
+  }
+  return { ev: "max" };
+}
+
+/* ---------- schermen ---------- */
+function show(id) {
+  document.querySelectorAll(".screen").forEach(s => s.classList.toggle("on", s.id === "s-" + id));
+  window.scrollTo(0, 0);
+  if (id === "start") renderStart();
+  if (id === "progress") renderProgress();
+  if (id === "parent") renderParent();
+}
+function toast(msg) { const t = $("#toast"); t.textContent = msg; t.classList.add("on"); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove("on"), 2200); }
+document.querySelectorAll("[data-home]").forEach(b => b.addEventListener("click", () => show("start")));
+
+function levelPill() {
+  const sh = currentSheet(); if (!sh) return "Geen leesblad aan";
+  const n = stepCount(), cur = stepOf(state.level.sec);
+  const dots = Array.from({ length: n }, (_, i) => `<i class="${i < cur ? "on" : ""}"></i>`).join("");
+  return `${esc(sh.titel)} &middot; stap ${cur} van ${n} <span class="dots">${dots}</span>`;
+}
+function renderStart() {
+  const sh = currentSheet(), pos = Math.max(0, sheetPos(sh));
+  const k = knuffelFor(Math.min(pos, state.unlocked));
+  $("#start-mascot").innerHTML = knuffelSVG(k, false);
+  $("#start-hello").textContent = `${k.naam} leest met je mee!`;
+  $("#start-level").innerHTML = levelPill();
+  const s = state.settings;
+  $("#start-sub").textContent = sh ? `${s.perRound} woorden in ${fmt(s.perRound * state.level.sec)} seconden` : "Zet in Ouder-instellingen een leesblad aan.";
+}
+
+/* Ouder-knop: 2 seconden vasthouden */
+(() => {
+  const b = $("#btn-ouder"); let t = null;
+  const start = e => { e.preventDefault(); b.classList.add("holding"); t = setTimeout(() => { b.classList.remove("holding"); show("parent"); }, 2000); };
+  const stop = () => { clearTimeout(t); b.classList.remove("holding"); };
+  b.addEventListener("pointerdown", start);
+  ["pointerup", "pointerleave", "pointercancel"].forEach(ev => b.addEventListener(ev, stop));
+  b.addEventListener("click", () => { if (!b.classList.contains("holding")) toast("Houd de knop 2 tellen ingedrukt"); });
+  b.addEventListener("contextmenu", e => e.preventDefault());
+})();
+$("#btn-voortgang").addEventListener("click", () => show("progress"));
+
+/* ---------- ronde ---------- */
+let round = null, raf = 0;
+function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+function wordsHTML(words, tap) {
+  let html = "";
+  for (let c = 0; c < words.length; c += 5) {
+    html += `<div class="col">` + words.slice(c, c + 5).map((w, j) =>
+      `<span class="word${tap ? " tap" : ""}" data-i="${c + j}">${esc(w)}</span>`).join("") + `</div>`;
+  }
+  return html;
+}
+function startRound() {
+  const sh = currentSheet();
+  if (!sh) { toast("Er staat geen leesblad aan"); return; }
+  const pool = shuffle([...new Set(sh.rijen.flat())]);
+  const n = Math.min(state.settings.perRound, pool.length);
+  if (!Number.isFinite(state.level.sec) || state.level.sec <= 0) state.level.sec = state.settings.startSec;
+  const sec = state.level.sec;
+  round = { words: pool.slice(0, n), total: r2(n * sec), sec, sheet: sh, pos: Math.max(0, sheetPos(sh)), wrong: new Set(), last: null, elapsed: 0, early: false, done: false };
+  show("round");
+  $("#round-title").textContent = sh.titel;
+  $("#round-time").textContent = `${fmt(round.total)} s`;
+  $("#round-words").innerHTML = wordsHTML(round.words, false);
+  $("#round-words").classList.add("hidewords");
+  $("#round-banner").textContent = "";
+  $("#bar").style.width = "0%"; $("#track").classList.remove("late");
+  $("#walker").innerHTML = knuffelSVG(knuffelFor(Math.min(round.pos, state.unlocked)), false);
+  $("#walker").style.left = "0%";
+  $("#btn-klaar").style.display = ""; $("#btn-nakijken").style.display = "none";
+  countdown(3);
+}
+function countdown(n) {
+  const cd = $("#countdown"), num = $("#cd-num");
+  cd.classList.add("on");
+  const tick = i => {
+    if (!round) { cd.classList.remove("on"); return; }
+    if (i === 0) { cd.classList.remove("on"); beginReading(); return; }
+    num.textContent = i; num.style.animation = "none"; void num.offsetWidth; num.style.animation = "";
+    round.cdTimer = setTimeout(() => tick(i - 1), 900);
+  };
+  tick(n);
+}
+function beginReading() {
+  $("#round-words").classList.remove("hidewords");
+  const t0 = performance.now();
+  round.t0 = t0;
+  const loop = now => {
+    if (!round || round.done) return;
+    const el = (now - t0) / 1000, p = Math.min(1, el / round.total);
+    $("#bar").style.width = (p * 100) + "%";
+    $("#walker").style.left = `calc(${p * 100}% - ${p * 20}px)`;
+    $("#round-time").textContent = `nog ${Math.max(0, Math.ceil(round.total - el))} s`;
+    if (p > .8) $("#track").classList.add("late");
+    if (p >= 1) { finishRound(false); return; }
+    raf = requestAnimationFrame(loop);
+  };
+  raf = requestAnimationFrame(loop);
+}
+function finishRound(early) {
+  if (!round || round.done) return;
+  cancelAnimationFrame(raf);
+  round.done = true; round.early = early;
+  round.elapsed = early ? Math.min(round.total, (performance.now() - round.t0) / 1000) : round.total;
+  round.last = early ? round.words.length - 1 : null;
+  $("#round-time").textContent = `${fmt(round.elapsed)} s`;
+  $("#round-banner").textContent = early ? `Klaar in ${fmt(round.elapsed)} seconden!` : "De tijd is op!";
+  $("#btn-klaar").style.display = "none"; $("#btn-nakijken").style.display = "";
+}
+$("#btn-start").addEventListener("click", startRound);
+$("#btn-klaar").addEventListener("click", () => { if (round && round.t0) finishRound(true); });
+$("#btn-nakijken").addEventListener("click", () => { checkMode = round.early ? "fout" : "tot"; renderCheck(); show("check"); });
+$("#btn-stop").addEventListener("click", () => {
+  if (round) { clearTimeout(round.cdTimer); cancelAnimationFrame(raf); }
+  round = null; $("#countdown").classList.remove("on"); show("start");
+});
+
+/* ---------- nakijken ---------- */
+let checkMode = "fout";
+function renderCheck() {
+  document.querySelectorAll(".seg button").forEach(b => b.classList.toggle("on", b.dataset.mode === checkMode));
+  $("#check-words").innerHTML = wordsHTML(round.words, true);
+  updateCheck();
+}
+function updateCheck() {
+  const last = round.last;
+  document.querySelectorAll("#check-words .word").forEach(w => {
+    const i = +w.dataset.i;
+    w.classList.toggle("wrong", round.wrong.has(i) && (last == null || i <= last));
+    w.classList.toggle("unread", last != null && i > last);
+    w.classList.toggle("last", last === i && last < round.words.length - 1);
+  });
+  const read = last == null ? 0 : last + 1;
+  const wrong = [...round.wrong].filter(i => last != null && i <= last).length;
+  $("#check-live").textContent = last == null ? "" : `Gelezen ${read} · Fout ${wrong} · Goed ${read - wrong}`;
+  $("#check-hint").textContent = last == null
+    ? "Tik eerst op 'Tot hier gelezen' en dan op het laatste woord dat Saar heeft gelezen."
+    : checkMode === "fout" ? "Tik op de woorden die fout waren. Nog een keer tikken maakt het weer goed."
+    : "Tik op het laatste woord dat gelezen is.";
+  $("#btn-save").disabled = last == null;
+}
+document.querySelectorAll(".seg button").forEach(b => b.addEventListener("click", () => { checkMode = b.dataset.mode; renderCheck(); }));
+$("#check-words").addEventListener("click", e => {
+  const w = e.target.closest(".word"); if (!w) return;
+  const i = +w.dataset.i;
+  if (checkMode === "tot") { round.last = i; }
+  else {
+    if (round.last != null && i > round.last) { toast("Dit woord is niet gelezen"); return; }
+    round.wrong.has(i) ? round.wrong.delete(i) : round.wrong.add(i);
+  }
+  updateCheck();
+});
+$("#btn-check-back").addEventListener("click", () => show("round"));
+$("#btn-save").addEventListener("click", saveRound);
+
+/* ---------- resultaat ---------- */
+function saveRound() {
+  const s = state.settings, n = round.words.length, read = round.last + 1;
+  const wrongList = [...round.wrong].filter(i => i <= round.last);
+  const correct = read - wrongList.length;
+  const accRaw = read ? correct / read * 100 : 0, acc = Math.round(accRaw);
+  const effTime = Math.max(round.elapsed, read * 0.3);
+  const wpm = read > 0 && effTime > 0 ? Math.round(correct / (effTime / 60)) : 0;
+  const passed = (!s.needAll || read === n) && accRaw >= s.minAcc - 1e-9 && read > 0;
+  const sess = { datum: new Date().toISOString(), blad: round.sheet.titel, sheetId: round.sheet.id, n, gelezen: read, goed: correct,
+    tijd: r2(round.elapsed), totaal: round.total, secPerWoord: round.sec, wpm, acc, gehaald: passed,
+    fout: wrongList.map(i => round.words[i]) };
+  state.sessions.push(sess);
+  const res = applyLevel(passed);
+  save();
+
+  const stars = passed ? 3 : acc >= 75 && read >= n * .7 ? 2 : read > 0 ? 1 : 0;
+  $("#res-stars").innerHTML = [0, 1, 2].map(i => starSVG(i < stars)).join("");
+  const k = res.ev === "blad" ? res.knuffel : knuffelFor(Math.min(round.pos, state.unlocked));
+  $("#res-mascot").innerHTML = `<div class="${passed ? "jump" : ""}">${knuffelSVG(k, passed || stars >= 2)}</div>`;
+  let title, msg;
+  if (res.ev === "blad") { title = "Nieuw leesblad!"; msg = res.fresh ? `Je hebt een nieuwe knuffel gewonnen: ${k.naam}!` : `Op naar ${currentSheet().titel}!`; }
+  else if (res.ev === "stap") { title = "Hoera, stap omhoog!"; msg = `Je krijgt nu ${fmt(state.level.sec)} seconden per woord.`; }
+  else if (res.ev === "streak") { title = "Super gedaan!"; msg = `Nog ${res.left} keer zo goed en je gaat een stap omhoog.`; }
+  else if (res.ev === "max") { title = "Kampioen!"; msg = "Je hebt alle leesbladen gehaald!"; }
+  else { title = stars >= 2 ? "Goed bezig!" : "Goed geoefend!"; msg = "Probeer het nog een keer, je wordt steeds sneller."; }
+  $("#res-title").textContent = title; $("#res-msg").textContent = msg;
+  $("#res-stats").innerHTML = [
+    ["pink", `${read} / ${n}`, "gelezen"], ["mint", correct, "goed"], ["blue", acc + "%", "goed gelezen"],
+    ["lila", wpm, "woorden per minuut"], ["peach", fmt(round.elapsed) + " s", "tijd"]
+  ].map(([c, b, t]) => `<div class="stat card ${c}"><b>${b}</b><span>${t}</span></div>`).join("");
+  show("result");
+  round = null;
+}
+$("#btn-again").addEventListener("click", startRound);
+$("#btn-res-home").addEventListener("click", () => show("start"));
+
+/* ---------- voortgang ---------- */
+function renderProgress() {
+  const en = enabledSheets();
+  const slots = Math.max(en.length, state.unlocked + 1);
+  $("#kast").innerHTML = Array.from({ length: slots }, (_, i) => {
+    const k = knuffelFor(i), open = i <= state.unlocked;
+    return `<div class="slot${open ? "" : " locked"}">${knuffelSVG(k, false)}<div>${open ? esc(k.naam) : "?"}</div></div>`;
+  }).join("");
+  // grafiek
+  const data = state.sessions.slice(-30);
+  if (!data.length) { $("#chart").innerHTML = `<p class="muted center">Nog geen rondes gespeeld.</p>`; }
+  else {
+    const W = 700, H = 240, pl = 44, pr = 16, pt = 16, pb = 30;
+    const max = Math.max(10, Math.ceil(Math.max(...data.map(d => d.wpm)) / 10) * 10);
+    const x = i => pl + (data.length === 1 ? (W - pl - pr) / 2 : i * (W - pl - pr) / (data.length - 1));
+    const y = v => pt + (H - pt - pb) * (1 - v / max);
+    let g = "";
+    for (let v = 0; v <= max; v += max / 4) g += `<line x1="${pl}" x2="${W - pr}" y1="${y(v)}" y2="${y(v)}" stroke="#f0e2e8" stroke-dasharray="4 4"/><text x="${pl - 8}" y="${y(v) + 5}" text-anchor="end" font-size="13" fill="#8a7482">${Math.round(v)}</text>`;
+    const pts = data.map((d, i) => `${x(i)},${y(d.wpm)}`).join(" ");
+    g += `<polyline points="${pts}" fill="none" stroke="#f29ab4" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>`;
+    g += data.map((d, i) => `<circle cx="${x(i)}" cy="${y(d.wpm)}" r="7" fill="${d.gehaald ? "#5fc39a" : "#fff"}" stroke="${d.gehaald ? "#fff" : "#f29ab4"}" stroke-width="3"><title>${esc(d.blad)}: ${d.wpm} wpm</title></circle>`).join("");
+    const f = d => new Date(d.datum).toLocaleDateString("nl-NL", { day: "numeric", month: "short" });
+    g += `<text x="${x(0)}" y="${H - 6}" font-size="13" fill="#8a7482" text-anchor="start">${f(data[0])}</text>`;
+    if (data.length > 1) g += `<text x="${x(data.length - 1)}" y="${H - 6}" font-size="13" fill="#8a7482" text-anchor="end">${f(data[data.length - 1])}</text>`;
+    $("#chart").innerHTML = `<svg viewBox="0 0 ${W} ${H}" font-family="Fredoka, sans-serif">${g}</svg><p class="muted" style="margin:6px 0 0">Groene stip = norm gehaald.</p>`;
+  }
+  // tabel
+  const rows = state.sessions.slice().reverse().map(d => {
+    const N = v => { const x = Number(v); return Number.isFinite(x) ? x : 0; };
+    const dt = new Date(d.datum).toLocaleString("nl-NL", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+    return `<tr><td>${esc(dt)}</td><td>${esc(d.blad)}</td><td>${N(d.gelezen)}/${N(d.n)}</td><td>${N(d.goed)}</td><td>${fmt(N(d.tijd))} s <span class="muted">/ ${fmt(N(d.totaal))}</span></td><td>${N(d.wpm)}</td><td class="${d.gehaald ? "ok" : ""}">${d.gehaald ? "✓" : ""}</td><td class="muted">${(Array.isArray(d.fout) ? d.fout : []).map(esc).join(", ")}</td></tr>`;
+  }).join("");
+  $("#sessions").innerHTML = state.sessions.length
+    ? `<table><thead><tr><th>Datum</th><th>Leesblad</th><th>Gelezen</th><th>Goed</th><th>Tijd</th><th>wpm</th><th>Norm</th><th>Fout gelezen</th></tr></thead><tbody>${rows}</tbody></table>`
+    : `<p class="muted center">Nog geen rondes gespeeld.</p>`;
+}
+
+/* ---------- ouder ---------- */
+const SETTING_KEYS = ["perRound", "startSec", "minSec", "stepSec", "minAcc", "streakNeeded"];
+function renderParent() {
+  const s = state.settings;
+  SETTING_KEYS.forEach(k => $("#p-" + k).value = s[k]);
+  $("#p-needAll").checked = !!s.needAll;
+  $("#p-current").innerHTML = `Nu: ${levelPill()} &middot; ${fmt(state.level.sec)} s per woord &middot; ${state.level.streak}× achter elkaar gehaald`;
+  const en = enabledSheets(), cur = currentSheet();
+  $("#p-sheet").innerHTML = en.map(sh => `<option value="${esc(sh.id)}"${cur && sh.id === cur.id ? " selected" : ""}>${esc(sh.titel)}</option>`).join("");
+  const n = stepCount(), cs = stepOf(state.level.sec);
+  $("#p-step").innerHTML = Array.from({ length: n }, (_, i) => `<option value="${i + 1}"${i + 1 === cs ? " selected" : ""}>Stap ${i + 1} (${fmt(secOfStep(i + 1))} s/woord)</option>`).join("");
+  renderSheetEditor();
+  $("#p-storage").textContent = store.ok() ? "Gegevens worden bewaard in deze browser. Maak af en toe een back-up." : "Let op: deze browser bewaart niets. Na sluiten is de voortgang weg — maak een back-up.";
+}
+function renderSheetEditor() {
+  $("#p-sheets").innerHTML = state.sheets.map((sh, i) => `
+    <div class="card sheetcard${sh.aan === false ? " off" : ""}" data-idx="${i}">
+      <div class="row">
+        <input type="checkbox" class="sh-aan"${sh.aan === false ? "" : " checked"} title="Aan/uit">
+        <input type="text" class="sh-titel" value="${esc(sh.titel)}">
+        <button class="btn small sh-up"${i === 0 ? " disabled" : ""}>&uarr;</button>
+        <button class="btn small sh-down"${i === state.sheets.length - 1 ? " disabled" : ""}>&darr;</button>
+        ${String(sh.id).startsWith("c") ? `<button class="btn small pink sh-del">Verwijderen</button>` : ""}
+      </div>
+      <details${sh.rijen.length ? "" : " open"}><summary>${sh.rijen.flat().length} woorden in ${sh.rijen.length} rijtjes — bewerken</summary>
+        <textarea class="sh-text" spellcheck="false">${esc(sh.rijen.map(r => r.join(" ")).join("\n"))}</textarea>
+      </details>
+    </div>`).join("");
+}
+function readSheetEditor() {
+  document.querySelectorAll("#p-sheets .sheetcard").forEach(card => {
+    const sh = state.sheets[+card.dataset.idx];
+    sh.aan = card.querySelector(".sh-aan").checked;
+    sh.titel = card.querySelector(".sh-titel").value.trim() || "Leesblad";
+    sh.rijen = card.querySelector(".sh-text").value.split("\n").map(l => l.split(/[\s,;]+/).filter(Boolean)).filter(r => r.length);
+  });
+}
+function fixLevel() {
+  const c = currentSheet();
+  if (c && state.level.sheetId !== c.id) { state.level.sheetId = c.id; state.level.sec = state.settings.startSec; state.level.streak = 0; }
+  state.level.sec = snapSec(state.level.sec);
+}
+$("#p-sheets").addEventListener("click", e => {
+  const card = e.target.closest(".sheetcard"); if (!card) return;
+  const i = +card.dataset.idx;
+  if (e.target.closest(".sh-up") || e.target.closest(".sh-down") || e.target.closest(".sh-del")) {
+    readSheetEditor();
+    if (e.target.closest(".sh-up")) [state.sheets[i - 1], state.sheets[i]] = [state.sheets[i], state.sheets[i - 1]];
+    else if (e.target.closest(".sh-down")) [state.sheets[i + 1], state.sheets[i]] = [state.sheets[i], state.sheets[i + 1]];
+    else { if (!confirm(`'${state.sheets[i].titel}' verwijderen?`)) return; state.sheets.splice(i, 1); }
+    renderSheetEditor();
+  }
+});
+$("#p-savesheets").addEventListener("click", () => {
+  readSheetEditor();
+  if (!enabledSheets().length) { toast("Zet minstens één leesblad met woorden aan"); return; }
+  fixLevel(); save(); renderParent(); toast("Woordlijsten opgeslagen");
+});
+$("#p-addsheet").addEventListener("click", () => {
+  readSheetEditor();
+  state.sheets.push({ id: "c" + Date.now(), titel: "Mijn leesblad", rijen: [], aan: true });
+  renderSheetEditor();
+  const last = document.querySelector("#p-sheets .sheetcard:last-child"); last.scrollIntoView({ behavior: "smooth" }); last.querySelector(".sh-text").focus();
+});
+$("#p-restoresheets").addEventListener("click", () => {
+  if (!confirm("Standaardlijsten herstellen? Eigen wijzigingen en eigen leesbladen gaan verloren.")) return;
+  state.sheets = defaultSheets(); fixLevel(); save(); renderParent(); toast("Standaardlijsten hersteld");
+});
+$("#p-savesettings").addEventListener("click", () => {
+  const s = {}; let bad = false;
+  SETTING_KEYS.forEach(k => { const v = parseFloat(String($("#p-" + k).value).replace(",", ".")); if (!(v > 0) && k !== "minAcc") bad = true; s[k] = v; });
+  if (bad || isNaN(s.minAcc)) { toast("Vul overal een geldig getal in"); return; }
+  if (s.minSec > s.startSec) { toast("Minimum mag niet groter zijn dan start"); return; }
+  s.perRound = Math.round(s.perRound); s.streakNeeded = Math.max(1, Math.round(s.streakNeeded)); s.minAcc = Math.min(100, Math.max(0, s.minAcc));
+  s.needAll = $("#p-needAll").checked;
+  Object.assign(state.settings, s);
+  state.level.sec = snapSec(Math.min(s.startSec, Math.max(s.minSec, state.level.sec)));
+  save(); renderParent(); toast("Instellingen opgeslagen");
+});
+$("#p-sheet").addEventListener("change", () => {});
+$("#p-setlevel").addEventListener("click", () => {
+  state.level.sheetId = $("#p-sheet").value; state.level.sec = secOfStep(+$("#p-step").value); state.level.streak = 0;
+  const pos = sheetPos(currentSheet()); if (pos > state.unlocked) state.unlocked = pos;
+  save(); renderParent(); toast("Niveau ingesteld");
+});
+$("#p-resetlevel").addEventListener("click", () => {
+  if (!confirm("Niveau terugzetten naar het eerste leesblad, stap 1?")) return;
+  const en = enabledSheets(); state.level = { sheetId: en[0] ? en[0].id : null, sec: state.settings.startSec, streak: 0 };
+  save(); renderParent(); toast("Niveau teruggezet");
+});
+$("#p-wipe").addEventListener("click", () => {
+  if (!confirm("Alle rondes, het niveau en de knuffelkast wissen? (Woordlijsten en instellingen blijven.)")) return;
+  state.sessions = []; state.unlocked = 0; const en = enabledSheets();
+  state.level = { sheetId: en[0] ? en[0].id : null, sec: state.settings.startSec, streak: 0 };
+  save(); renderParent(); toast("Voortgang gewist");
+});
+$("#p-export").addEventListener("click", () => {
+  const data = { app: "knuffel-leesrace", versie: 1, gemaakt: new Date().toISOString(), settings: state.settings, sheets: state.sheets, level: state.level, sessions: state.sessions, unlocked: state.unlocked };
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }));
+  a.download = `leesrace-backup-${new Date().toISOString().slice(0, 10)}.json`;
+  document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+});
+function sanitizeBackup(d) {
+  if (!d || typeof d !== "object") throw new Error("geen object");
+  const num = (v, def, lo, hi) => { const x = Number(v); return Number.isFinite(x) && x >= lo && x <= hi ? x : def; };
+  const ds = DEFAULT_SETTINGS, ss = d.settings && typeof d.settings === "object" ? d.settings : {};
+  const settings = {
+    perRound: Math.round(num(ss.perRound, ds.perRound, 1, 80)), startSec: num(ss.startSec, ds.startSec, 0.3, 20),
+    minSec: num(ss.minSec, ds.minSec, 0.3, 20), stepSec: num(ss.stepSec, ds.stepSec, 0.1, 5),
+    minAcc: num(ss.minAcc, ds.minAcc, 0, 100), needAll: typeof ss.needAll === "boolean" ? ss.needAll : ds.needAll,
+    streakNeeded: Math.round(num(ss.streakNeeded, ds.streakNeeded, 1, 10))
+  };
+  if (settings.minSec > settings.startSec) settings.minSec = settings.startSec;
+  if (!Array.isArray(d.sheets)) throw new Error("geen sheets");
+  const sheets = d.sheets.filter(sh => sh && typeof sh === "object" && Array.isArray(sh.rijen)).map((sh, i) => ({
+    id: typeof sh.id === "string" && sh.id ? sh.id : "c" + Date.now() + i,
+    titel: typeof sh.titel === "string" && sh.titel.trim() ? sh.titel.slice(0, 80) : "Leesblad",
+    rijen: sh.rijen.filter(Array.isArray).map(r => r.filter(w => typeof w === "string" && w.trim()).map(w => w.trim().slice(0, 40))).filter(r => r.length),
+    aan: sh.aan !== false
+  }));
+  if (!sheets.some(sh => sh.aan && sh.rijen.length)) throw new Error("geen bruikbaar leesblad");
+  const lv = d.level && typeof d.level === "object" ? d.level : {};
+  const level = { sheetId: typeof lv.sheetId === "string" ? lv.sheetId : sheets[0].id,
+    sec: num(lv.sec, settings.startSec, 0.1, 60), streak: Math.round(num(lv.streak, 0, 0, 100)) };
+  if (!Array.isArray(d.sessions)) throw new Error("geen sessions");
+  const sessions = d.sessions.filter(x => x && typeof x === "object").map(x => ({
+    datum: typeof x.datum === "string" && !isNaN(Date.parse(x.datum)) ? x.datum : new Date(0).toISOString(),
+    blad: typeof x.blad === "string" ? x.blad.slice(0, 80) : "?", sheetId: typeof x.sheetId === "string" ? x.sheetId : "",
+    n: num(x.n, 0, 0, 1000), gelezen: num(x.gelezen, 0, 0, 1000), goed: num(x.goed, 0, 0, 1000),
+    tijd: num(x.tijd, 0, 0, 36000), totaal: num(x.totaal, 0, 0, 36000), secPerWoord: num(x.secPerWoord, 0, 0, 60),
+    wpm: num(x.wpm, 0, 0, 100000), acc: num(x.acc, 0, 0, 100), gehaald: x.gehaald === true,
+    fout: Array.isArray(x.fout) ? x.fout.filter(w => typeof w === "string").map(w => w.slice(0, 40)) : []
+  }));
+  return { settings, sheets, level, sessions, unlocked: Math.round(num(d.unlocked, 0, 0, 1000)) };
+}
+$("#p-import").addEventListener("click", () => $("#p-file").click());
+$("#p-file").addEventListener("change", e => {
+  const f = e.target.files[0]; if (!f) return;
+  const rd = new FileReader();
+  rd.onload = () => {
+    try {
+      const clean = sanitizeBackup(JSON.parse(rd.result));
+      Object.assign(state, clean);
+      fixLevel(); save(); renderParent(); toast("Back-up teruggezet");
+    } catch (err) { toast("Geen geldige back-up: er is niets veranderd"); }
+    e.target.value = "";
+  };
+  rd.readAsText(f);
+});
+
+fixLevel();
+renderStart();
+</script>
+</body>
+</html>
