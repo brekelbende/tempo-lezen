@@ -1,4 +1,4 @@
-// Woordenlijsten uit het leesboek (Leesblad 1-9). Elk blad = lijst van rijtjes van 5 woorden.
+// Woordenlijsten uit het leesboek (Leesblad 1-10). Elk blad = lijst van rijtjes van 5 woorden.
 // Volgorde in LEESBLADEN = oplopende moeilijkheid zoals in het boek.
 // Gereconstrueerd (rand van de foto viel weg): blad 1 rij 13, blad 3 rij 9 (beurten, anker), blad 7 rij 15 (knecht, springt). Blad 3 rij 13 was onleesbaar en is weggelaten.
 const LEESBLADEN = [
@@ -150,5 +150,22 @@ const LEESBLADEN = [
   ["schub","web","schrob","Rob","heb"],
   ["voorspoed","zeldzaam","verslaafd","brandweer","beroemd"],
   ["schreeuw","zwaaien","vermoeien","nieuweling","leeuwenkooi"],
-  ["gerucht","spechten","oprichten","gedichten","Maastricht"]]}
+  ["gerucht","spechten","oprichten","gedichten","Maastricht"]]},
+ { id: 10, titel: "Leesblad 10", rijen: [
+  ["houten","ouder","mouwen","trouwen","wouden"],
+  ["schouder","houding","kousen","oude","vrouwen"],
+  ["gouden","stoute","fouten","touwen","sjouwen"],
+  ["vouwen","houden","huishouden","buurvrouw","landbouw"],
+  ["lijmen","schrijven","tijden","wijzen","grijs"],
+  ["schijven","tijdens","lijnen","pijlen","pijn"],
+  ["pijp","bijlen","fijner","blij","lijsten"],
+  ["glijbaan","dijken","schijnen","kwijt","prijzen"],
+  ["lichtgrijs","hoofdprijs","wijzer","schrijfschrift","maaltijd"],
+  ["trouwdag","oerwoud","schouwburg","mijnbouw","meervoud"],
+  ["bouwen","zout","zoutpot","koude","spelfout"],
+  ["dichtbij","gelijk","terwijl","altijd","ijzererts"],
+  ["vorst","wesp","straks","stoutst","stampt"],
+  ["bomen","kappen","druiven","bommen","kapen"],
+  ["sprinten","spelen","splitsen","draken","spellen"],
+  ["schub","strand","straat","krant","gezond"]]}
 ];
